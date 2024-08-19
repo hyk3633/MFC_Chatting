@@ -43,3 +43,16 @@ res/
 *.txt
 /.gitignore
 /.gitignore
+/MFC_Client/x64/Debug/MFC_Client.tlog
+/MFC_Client/x64/Debug/MFCClient.res
+/MFC_Client/x64/Debug/MFC_Client.exe.recipe
+/MFC_Client/x64/Debug/MFC_Client.ilk
+/MFC_Client/x64/Debug/MFC_Client.log
+/MFC_Client/x64/Debug/vc143.idb
+/MFC_Client/x64/Debug/vc143.pdb
+/x64/Debug
+/MFC_Client/qwqw
+/MFC_Client/x64/Debug
+/.vs/MFC_Chatting
+/MFC_Server/x64/Debug
+*.sln
