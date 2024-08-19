@@ -2,7 +2,9 @@
 #include "Server.h"
 #include "Database.h"
 #include "MFC_ServerDlg.h"
+#include <shlobj.h>
 #include <fstream>
+#include <algorithm>
 
 using namespace std;
 
@@ -102,6 +104,28 @@ void Server::StartServer()
 		closesocket(listenSocket);
 		WSACleanup();
 		return;
+	}
+
+	pathName = wstring(MAX_PATH, 0);
+	HRESULT result = SHGetFolderPathW(NULL, CSIDL_PERSONAL, NULL, 0, &pathName[0]);
+
+	if (SUCCEEDED(result)) 
+	{
+		pathName.erase(remove(pathName.begin(), pathName.end(), L'\0'), pathName.end());
+		pathName += L"\\MFC_Chatting";
+		if (GetFileAttributes(pathName.c_str()) == INVALID_FILE_ATTRIBUTES)
+		{
+			CreateDirectory(pathName.c_str(), NULL);
+		}
+		pathName += L"\\Server";
+		if (GetFileAttributes(pathName.c_str()) == INVALID_FILE_ATTRIBUTES)
+		{
+			CreateDirectory(pathName.c_str(), NULL);
+		}
+	}
+	else
+	{
+		pathName = L"";
 	}
 
 	bAccept = true;
@@ -453,7 +477,7 @@ void Server::SaveImageExt(const int clientNumber, const char* buf, const size_t&
 void Server::RecvImage(const int clientNumber, const char* buf, const size_t& size)
 {
 	// 파일 저장
-	wstring imageName = idMap[clientNumber] + L"." + profileImageExtMap[clientNumber];
+	wstring imageName = pathName + L"\\" + idMap[clientNumber] + L"." + profileImageExtMap[clientNumber];
 	ofstream file(imageName, ios::binary | ios::out);
 	file.write(&buf[1 + sizeof(size_t)], size);
 	file.close();

@@ -37,10 +37,6 @@ bool Client::InitSocket()
 		return false;
 	}
 
-	pathName = wstring(MAX_PATH, 0);
-	DWORD pathSize = GetCurrentDirectory(MAX_PATH, &pathName[0]);
-	pathName.resize(pathSize);
-
 	return true;
 }
 
@@ -62,6 +58,28 @@ bool Client::StartSocket()
 	{
 		isAbleRecv = true;
 		recvThread = new thread(&ThreadRecv, this, std::ref(mySocket));
+	}
+
+	pathName = wstring(MAX_PATH, 0);
+	HRESULT result = SHGetFolderPathW(NULL, CSIDL_PERSONAL, NULL, 0, &pathName[0]);
+
+	if (SUCCEEDED(result))
+	{
+		pathName.erase(remove(pathName.begin(), pathName.end(), L'\0'), pathName.end());
+		pathName += L"\\MFC_Chatting";
+		if (GetFileAttributes(pathName.c_str()) == INVALID_FILE_ATTRIBUTES)
+		{
+			CreateDirectory(pathName.c_str(), NULL);
+		}
+		pathName += L"\\Client";
+		if (GetFileAttributes(pathName.c_str()) == INVALID_FILE_ATTRIBUTES)
+		{
+			CreateDirectory(pathName.c_str(), NULL);
+		}
+	}
+	else
+	{
+		pathName = L"";
 	}
 
 	return true;
@@ -318,9 +336,7 @@ void Client::SaveImage(const char* buf, const size_t& size)
 	if (GetFileAttributes(filePath.c_str()) == INVALID_FILE_ATTRIBUTES)
 	{
 		if (!CreateDirectory(filePath.c_str(), NULL))
-		{
 			return;
-		}
 	}
 
 	ofstream file(filePath + L"\\" + lastImageName, ios::binary | ios::out);

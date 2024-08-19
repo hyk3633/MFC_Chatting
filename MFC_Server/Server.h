@@ -123,6 +123,8 @@ private:
 
 	std::unique_ptr<Database> dbPtr;
 
+	std::wstring pathName;
+
 	bool bAccept = false;
 
 	bool bRecv = false;
