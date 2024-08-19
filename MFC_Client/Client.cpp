@@ -235,48 +235,65 @@ bool Client::Send(const char* buf, const size_t& size)
 
 void Client::ProcessPacket(const char* buf, const size_t& size, const DataType type)
 {
-	if (type == DataType::ID)
+	switch (type)
+	{
+	case DataType::ID:
 	{
 		ownerDlg->SendMessage(MSG_UPDATE_ID_LIST, (WPARAM)&buf[1 + sizeof(size_t)], size);
+		break;
 	}
-	else if (type == DataType::TEXT)
+	case DataType::TEXT:
 	{
 		ownerDlg->SendMessage(MSG_RECV_TEXT, (WPARAM)&buf[1 + sizeof(size_t)], size);
+		break;
 	}
-	else if(type == DataType::IMAGE_EXT)
+	case DataType::IMAGE_EXT:
 	{
-		wstring wStr = MultiByteToUnicode(&buf[1 + sizeof(size_t)], size);
-		wstringstream wss(wStr);
-		wstring id, ext;
-		wss >> id >> ext;
-		idExtMap[id] = ext;
-		lastImageName = id + L"." + ext;
+		SaveImageName(buf, size);
+		break;
 	}
-	else if (type == DataType::IMAGE)
+	case DataType::IMAGE:
 	{
-		if (lastImageName.length() == 0)
-			return;
-
-		wstring filePath = pathName + L"\\" + myId;
-
-		if (GetFileAttributes(filePath.c_str()) == INVALID_FILE_ATTRIBUTES)
-		{
-			if (!CreateDirectory(filePath.c_str(), NULL))
-			{
-				return;
-			}
-		}
-
-		ofstream file(filePath + L"\\" + lastImageName, ios::binary | ios::out);
-		file.write(&buf[1 + sizeof(size_t)], size);
-		file.close();
+		SaveImage(buf, size);
+		break;
 	}
-	else if (type == DataType::DISCONNECTED_ID)
+	case DataType::IMAGE_REQUEST:
 	{
-		wstring id = MultiByteToUnicode(&buf[1 + sizeof(size_t)], size);
-		const wchar_t* wchPtr = &id[0];
-		ownerDlg->SendMessage(MSG_REMOVE_ID, (WPARAM)&wchPtr[0], (LPARAM)id.length());
+		SendImageRequestMessage(buf, size);
+		break;
 	}
+	case DataType::DISCONNECTED_ID:
+	{
+		RemoveDisconnectedId(buf, size);
+		break;
+	}
+	}
+}
+
+void Client::SaveImageName(const char* buf, const size_t& size)
+{
+	wstring wStr = MultiByteToUnicode(&buf[1 + sizeof(size_t)], size);
+	wstringstream wss(wStr);
+	wstring id, ext;
+	wss >> id >> ext;
+	idExtMap[id] = ext;
+	lastImageName = id + L"." + ext;
+}
+
+void Client::SendImageRequestMessage(const char* buf, const size_t& size)
+{
+	SaveImage(buf, size);
+	wstring imageName = lastImageName;
+	const wchar_t* wStrPtr = &imageName[0];
+	ownerDlg->SendMessage(MSG_RECV_TEXT, (WPARAM)&wStrPtr, (LPARAM)imageName.length());
+}
+
+void Client::RemoveDisconnectedId(const char* buf, const size_t& size)
+{
+	wstring id = MultiByteToUnicode(&buf[1 + sizeof(size_t)], size);
+	const wchar_t* wchPtr = &id[0];
+	ownerDlg->SendMessage(MSG_REMOVE_ID, (WPARAM)&wchPtr[0], (LPARAM)id.length());
+	idExtMap.erase(id);
 }
 
 std::wstring Client::MultiByteToUnicode(const char* buf, const int& size)
@@ -289,6 +306,26 @@ std::wstring Client::MultiByteToUnicode(const char* buf, const int& size)
 	strSize = MultiByteToWideChar(CP_UTF8, 0, buf, size, &wStr[0], size);
 
 	return wStr.c_str();
+}
+
+void Client::SaveImage(const char* buf, const size_t& size)
+{
+	if (lastImageName.length() == 0)
+		return;
+
+	wstring filePath = pathName + L"\\" + myId;
+
+	if (GetFileAttributes(filePath.c_str()) == INVALID_FILE_ATTRIBUTES)
+	{
+		if (!CreateDirectory(filePath.c_str(), NULL))
+		{
+			return;
+		}
+	}
+
+	ofstream file(filePath + L"\\" + lastImageName, ios::binary | ios::out);
+	file.write(&buf[1 + sizeof(size_t)], size);
+	file.close();
 }
 
 void Client::SendImage(const std::wstring& filePath, const std::wstring& fileExt, const DataType type)

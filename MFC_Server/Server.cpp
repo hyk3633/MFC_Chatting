@@ -588,7 +588,7 @@ void Server::ImageToBytes(std::vector<char>& buf, const std::wstring& filePath, 
 
 		buf = vector<char>(packetSize);
 
-		buf[0] = static_cast<int>(DataType::IMAGE);
+		buf[0] = static_cast<int>(DataType::IMAGE_REQUEST);
 		CopyMemory(&buf[1], &fileSize, sizeof(size_t));
 
 		file.read(&buf[1 + sizeof(size_t)], size);

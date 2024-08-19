@@ -45,6 +45,7 @@ BEGIN_MESSAGE_MAP(CMFCClientDlg, CDialogEx)
 	ON_MESSAGE(MSG_DISCONNECTED, &CMFCClientDlg::OnMsgDisconnected)
 	ON_MESSAGE(MSG_REMOVE_ID, &CMFCClientDlg::OnMsgRemoveId)
 	ON_WM_GETMINMAXINFO()
+	ON_MESSAGE(MSG_SHOW_IMAGE, &CMFCClientDlg::OnMsgShowImage)
 END_MESSAGE_MAP()
 
 
@@ -331,7 +332,7 @@ afx_msg LRESULT CMFCClientDlg::OnMsgSendText(WPARAM wParam, LPARAM lParam)
 	const wchar_t* wchPtr = (wchar_t*)wParam;
 	std::wstring wStr(wchPtr);
 
-	chatLog += L"[나] : " + wStr + L"\n";
+	chatLog += L"[" + clientPtr->GetMyId() + L"] : " + wStr + L"\n";
 	return 0;
 }
 
@@ -359,6 +360,7 @@ void CMFCClientDlg::OnMenuSetProfileImage()
 afx_msg LRESULT CMFCClientDlg::OnMsgDisconnected(WPARAM wParam, LPARAM lParam)
 {
 	AfxMessageBox(L"서버와 연결이 종료되었습니다.");
+	clientPtr.reset();
 	SendMessage(WM_CLOSE);
 	return 0;
 }
@@ -389,4 +391,16 @@ void CMFCClientDlg::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 	}
 
 	CDialogEx::OnGetMinMaxInfo(lpMMI);
+}
+
+
+afx_msg LRESULT CMFCClientDlg::OnMsgShowImage(WPARAM wParam, LPARAM lParam)
+{
+	const wchar_t* wChar = (wchar_t*)wParam;
+	std::wstring imageName(wChar);
+
+	std::wstring filePath = clientPtr->GetImagePath() + L"\\" + clientPtr->GetMyId() + L"\\" + imageName;
+	mainTab->ShowImage(filePath);
+
+	return 0;
 }

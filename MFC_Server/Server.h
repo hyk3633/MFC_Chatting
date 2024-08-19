@@ -97,7 +97,7 @@ protected:
 
 	void WriteStringToBuffer(const std::wstring& wStr, const DataType type, std::vector<char>& buf, size_t& packetSize);
 
-protected:
+private:
 
 	CMFCServerDlg* ownerDlg;
 

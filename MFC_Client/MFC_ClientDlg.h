@@ -64,6 +64,7 @@ protected:
 	afx_msg LRESULT OnMsgSendText(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnMsgDisconnected(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnMsgRemoveId(WPARAM wParam, LPARAM lParam);
+	afx_msg LRESULT OnMsgShowImage(WPARAM wParam, LPARAM lParam);
 
 	void CreateMainWindow();
 
@@ -84,5 +85,5 @@ private:
 	ClientDlg_Main* mainTab;
 
 	bool bMain = false;
-	
+
 };

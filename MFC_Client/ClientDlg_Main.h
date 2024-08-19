@@ -42,6 +42,8 @@ public:
 
 	void RemoveId(std::wstring& idToRemove);
 
+	void ShowImage(const std::wstring& filePath);
+
 private:
 
 	std::weak_ptr<Client> clientPtr;

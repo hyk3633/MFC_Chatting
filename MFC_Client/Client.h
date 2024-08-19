@@ -19,6 +19,7 @@ const unsigned int MSG_RECV_TEXT		= WM_USER + 4;
 const unsigned int MSG_SEND_TEXT		= WM_USER + 5;
 const unsigned int MSG_DISCONNECTED		= WM_USER + 6;
 const unsigned int MSG_REMOVE_ID		= WM_USER + 7;
+const unsigned int MSG_SHOW_IMAGE		= WM_USER + 8;
 
 class Client
 {
@@ -38,21 +39,35 @@ public:
 
 	void ProcessLoginResult(const char* buf);
 
+public:
+
 	void SendText(const DataType type, const std::wstring& wStr);
 
 	std::string UnicodeToMultyByte(const std::wstring& wStr);
 
-	bool Send(const char* buf, const size_t& size);
+public:
 
-	inline bool GetIsAbleRecv() const { return isAbleRecv; }
+	bool Send(const char* buf, const size_t& size);
 
 	void ProcessPacket(const char* buf, const size_t& size, const DataType type);
 
+protected:
+
+	void SaveImageName(const char* buf, const size_t& size);
+
+	void SendImageRequestMessage(const char* buf, const size_t& size);
+
+	void RemoveDisconnectedId(const char* buf, const size_t& size);
+
+public:
+
 	static std::wstring MultiByteToUnicode(const char* buf, const int& size);
 
-	void SetMyId(const std::wstring& id) { myId = id; }
+protected:
 
-	inline std::wstring GetMyId() const { return myId; }
+	void SaveImage(const char* buf, const size_t& size);
+
+public:
 
 	void SendImage(const std::wstring& filePath, const std::wstring& fileExt, const DataType type);
 
@@ -64,9 +79,19 @@ public:
 
 	void RequestImageToServer(const std::wstring& wStr);
 
+protected:
+
 	void DisconnectToServer();
 
+public:
+
 	void SendDisconnectedMessage();
+
+	inline bool GetIsAbleRecv() const { return isAbleRecv; }
+
+	inline void SetMyId(const std::wstring& id) { myId = id; }
+
+	inline std::wstring GetMyId() const { return myId; }
 
 private:
 

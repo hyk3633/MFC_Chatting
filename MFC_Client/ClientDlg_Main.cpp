@@ -93,6 +93,7 @@ void ClientDlg_Main::RemoveId(std::wstring& idToRemove)
 	}
 }
 
+
 void ClientDlg_Main::OnBnClickedButtonSend()
 {
 	if (auto shPtr = clientPtr.lock())
@@ -140,11 +141,16 @@ void ClientDlg_Main::OnClickListClients(NMHDR* pNMHDR, LRESULT* pResult)
 		}
 		else
 		{
-			ClientDlg_ImagePopup* imagePopup = new ClientDlg_ImagePopup();
-			imagePopup->Create(IDD_CLIENT_IMGPOPUP);
-			imagePopup->ShowWindow(SW_SHOW);
 			std::wstring filePath = shPtr->GetImagePath() + L"\\" + shPtr->GetMyId() + L"\\" + id + L"." + imageExt;
-			imagePopup->SetImage(filePath);
+			ShowImage(filePath);
 		}
 	}
+}
+
+void ClientDlg_Main::ShowImage(const std::wstring& filePath)
+{
+	ClientDlg_ImagePopup* imagePopup = new ClientDlg_ImagePopup();
+	imagePopup->Create(IDD_CLIENT_IMGPOPUP);
+	imagePopup->ShowWindow(SW_SHOW);
+	imagePopup->SetImage(filePath);
 }
