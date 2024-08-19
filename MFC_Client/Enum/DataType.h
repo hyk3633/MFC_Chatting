@@ -1,0 +1,14 @@
+#pragma once
+
+enum class DataType
+{
+	SIGNUP_INFO,
+	LOGIN_INFO,
+	ID,
+	TEXT,
+	IMAGE_EXT,
+	IMAGE,
+	IMAGE_REQUEST,
+	DISCONNECTED_ID,
+	NONE,
+};

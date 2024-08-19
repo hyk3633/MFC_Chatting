@@ -7,44 +7,11 @@
 #include "MFC_Server.h"
 #include "MFC_ServerDlg.h"
 #include "afxdialogex.h"
+#include "Server.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-
-
-// 응용 프로그램 정보에 사용되는 CAboutDlg 대화 상자입니다.
-
-class CAboutDlg : public CDialogEx
-{
-public:
-	CAboutDlg();
-
-// 대화 상자 데이터입니다.
-#ifdef AFX_DESIGN_TIME
-	enum { IDD = IDD_ABOUTBOX };
-#endif
-
-	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 지원입니다.
-
-// 구현입니다.
-protected:
-	DECLARE_MESSAGE_MAP()
-};
-
-CAboutDlg::CAboutDlg() : CDialogEx(IDD_ABOUTBOX)
-{
-}
-
-void CAboutDlg::DoDataExchange(CDataExchange* pDX)
-{
-	CDialogEx::DoDataExchange(pDX);
-}
-
-BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
-END_MESSAGE_MAP()
-
 
 // CMFCServerDlg 대화 상자
 
@@ -59,12 +26,16 @@ CMFCServerDlg::CMFCServerDlg(CWnd* pParent /*=nullptr*/)
 void CMFCServerDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_LIST_CLIENTS, listCtrl_Clients);
 }
 
 BEGIN_MESSAGE_MAP(CMFCServerDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_MESSAGE(MSG_CLIENT_LOGIN, &CMFCServerDlg::OnMsgClientLogin)
+	ON_MESSAGE(MSG_REMOVE_ID, &CMFCServerDlg::OnMsgRemoveId)
+	ON_WM_GETMINMAXINFO()
 END_MESSAGE_MAP()
 
 
@@ -74,47 +45,21 @@ BOOL CMFCServerDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
 
-	// 시스템 메뉴에 "정보..." 메뉴 항목을 추가합니다.
-
-	// IDM_ABOUTBOX는 시스템 명령 범위에 있어야 합니다.
-	ASSERT((IDM_ABOUTBOX & 0xFFF0) == IDM_ABOUTBOX);
-	ASSERT(IDM_ABOUTBOX < 0xF000);
-
-	CMenu* pSysMenu = GetSystemMenu(FALSE);
-	if (pSysMenu != nullptr)
-	{
-		BOOL bNameValid;
-		CString strAboutMenu;
-		bNameValid = strAboutMenu.LoadString(IDS_ABOUTBOX);
-		ASSERT(bNameValid);
-		if (!strAboutMenu.IsEmpty())
-		{
-			pSysMenu->AppendMenu(MF_SEPARATOR);
-			pSysMenu->AppendMenu(MF_STRING, IDM_ABOUTBOX, strAboutMenu);
-		}
-	}
-
-	// 이 대화 상자의 아이콘을 설정합니다.  응용 프로그램의 주 창이 대화 상자가 아닐 경우에는
-	//  프레임워크가 이 작업을 자동으로 수행합니다.
 	SetIcon(m_hIcon, TRUE);			// 큰 아이콘을 설정합니다.
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 
-	// TODO: 여기에 추가 초기화 작업을 추가합니다.
+	CRect rect;
+	listCtrl_Clients.GetClientRect(&rect);
+	listCtrl_Clients.SetExtendedStyle(LVS_EX_GRIDLINES | LVS_EX_FULLROWSELECT);
+	listCtrl_Clients.InsertColumn(0, _T("아이디"), LVCFMT_LEFT, rect.Width() * 0.5);
 
-	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
-}
+	serverPtr = std::make_shared<Server>(this);
+	if (serverPtr->InitializeServer())
+	{
+		serverPtr->StartServer();
+	}
 
-void CMFCServerDlg::OnSysCommand(UINT nID, LPARAM lParam)
-{
-	if ((nID & 0xFFF0) == IDM_ABOUTBOX)
-	{
-		CAboutDlg dlgAbout;
-		dlgAbout.DoModal();
-	}
-	else
-	{
-		CDialogEx::OnSysCommand(nID, lParam);
-	}
+	return TRUE;
 }
 
 // 대화 상자에 최소화 단추를 추가할 경우 아이콘을 그리려면
@@ -153,3 +98,39 @@ HCURSOR CMFCServerDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+afx_msg LRESULT CMFCServerDlg::OnMsgClientLogin(WPARAM wParam, LPARAM lParam)
+{
+	std::string id("", lParam);
+	CopyMemory(&id[0], (char*)wParam, lParam);
+
+	CString cStr(id.c_str());
+
+	listCtrl_Clients.InsertItem(listCtrl_Clients.GetItemCount(), cStr);
+
+	return LRESULT();
+}
+
+
+afx_msg LRESULT CMFCServerDlg::OnMsgRemoveId(WPARAM wParam, LPARAM lParam)
+{
+	const wchar_t* wchPtr = (wchar_t*)wParam;
+	std::wstring idToRemove(wchPtr);
+
+	for (int i = 0; i < listCtrl_Clients.GetItemCount(); i++)
+	{
+		CString id = listCtrl_Clients.GetItemText(i, 0);
+
+		if (idToRemove == id.operator LPCWSTR())
+			listCtrl_Clients.DeleteItem(i);
+	}
+
+	return 0;
+}
+
+
+void CMFCServerDlg::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
+{
+	lpMMI->ptMinTrackSize = CPoint(581, 434);
+	lpMMI->ptMaxTrackSize = CPoint(581, 434);
+	CDialogEx::OnGetMinMaxInfo(lpMMI);
+}

@@ -7,6 +7,9 @@
 #ifndef PCH_H
 #define PCH_H
 
+#define SERVER_PORT 9999
+#define PACKET_SIZE 4096
+
 // 여기에 미리 컴파일하려는 헤더 추가
 #include "framework.h"
 
